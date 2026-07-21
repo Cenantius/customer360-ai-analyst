@@ -1,0 +1,15 @@
+# Virtual environment
+.venv/
+
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+
+# Test cache
+.pytest_cache/
+
+# Local editor settings
+.vscode/
