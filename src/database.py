@@ -1,5 +1,6 @@
 from pathlib import Path
 from config import DATABASE_PATH
+from exceptions import DatabaseQueryError
 import sqlite3
 import pandas as pd
 import logging
@@ -30,15 +31,21 @@ def run_query(query: str) -> pd.DataFrame:
 
     try:
         result = pd.read_sql_query(query, connection)
+    except (sqlite3.Error, pd.errors.DatabaseError) as error:
+        logger.exception("Database query failed")
 
-        logger.info(
-            "SQL query completed succesfully with %s rows",
-            len(result),
-        )
-
-        return result
+        raise DatabaseQueryError(
+            "The database could not execute the generated query."
+        ) from error
     finally:
         connection.close()
+
+    logger.info(
+        "SQL query completed successfully with %s rows",
+        len(result),
+    )
+
+    return result
 
 def get_database_schema() -> str:
     """
