@@ -1,11 +1,16 @@
 from llm import ask_llm
 from prompts import DATABASE_SCHEMA
 from database import get_database_schema
+import logging
+
+logger = logging.getLogger(__name__)
 
 def generate_sql(question: str) -> str:
     """
     Generates a SQLite query from a natural-language question.
     """
+
+    logger.info("Generating SQL query")
 
     database_schema = get_database_schema()
 
@@ -29,5 +34,8 @@ Database schema:
 User question:
 {question}
 """
-    
-    return ask_llm(prompt).strip()
+    generated_sql = ask_llm(prompt).strip()
+
+    logger.info("SQL query generated succesfully")
+
+    return generated_sql

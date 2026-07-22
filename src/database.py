@@ -2,6 +2,9 @@ from pathlib import Path
 from config import DATABASE_PATH
 import sqlite3
 import pandas as pd
+import logging
+
+logger = logging.getLogger(__name__)
 
 def create_read_only_connection() -> sqlite3.Connection:
     """
@@ -20,10 +23,20 @@ def run_query(query: str) -> pd.DataFrame:
     """
     Runs a read-only SQL query and returns the result as a DataFrame.
     """
+
+    logger.info("Executing read-only SQL query")
+
     connection = create_read_only_connection()
 
     try:
-        return pd.read_sql_query(query, connection)
+        result = pd.read_sql_query(query, connection)
+
+        logger.info(
+            "SQL query completed succesfully with %s rows",
+            len(result),
+        )
+
+        return result
     finally:
         connection.close()
 
@@ -32,6 +45,8 @@ def get_database_schema() -> str:
     Reads tables, views, and their columns from the SQLite database and returns a text description
     suitable for an LLM prompt.
     """
+
+    logger.info("Reading database schema")
 
     connection = create_read_only_connection()
 
@@ -68,6 +83,11 @@ def get_database_schema() -> str:
             )
 
             schema_sections.append(section)
+
+        logger.info(
+            "Database schema loaded with %s objects",
+            len(schema_sections),
+        )
 
         return "\n\n".join(schema_sections)
     

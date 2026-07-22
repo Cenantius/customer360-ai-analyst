@@ -1,9 +1,14 @@
 from llm import ask_llm
+import logging
+
+logger = logging.getLogger(__name__)
 
 def analyze_results(question: str, results: str) -> str:
     """
     Converts SQL query results into a clear natural-language answer.
     """
+
+    logger.info("Generating natural-language analysis")
 
     prompt = f"""
 You are a business data analyst.
@@ -24,4 +29,8 @@ Query results:
 {results}
 """
     
-    return ask_llm(prompt).strip()
+    answer = ask_llm(prompt).strip()
+
+    logger.info("Natural-language analysis generated succesfully")
+
+    return answer
