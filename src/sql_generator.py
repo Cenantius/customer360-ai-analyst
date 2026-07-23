@@ -1,7 +1,9 @@
+import logging
+
 from llm import ask_llm
 from prompts import DATABASE_SCHEMA
 from database import get_database_schema
-import logging
+
 
 logger = logging.getLogger(__name__)
 

@@ -1,9 +1,12 @@
+import logging
+import sqlite3
+
+import pandas as pd
+
 from pathlib import Path
 from config import DATABASE_PATH
 from exceptions import DatabaseQueryError
-import sqlite3
-import pandas as pd
-import logging
+
 
 logger = logging.getLogger(__name__)
 

@@ -2,6 +2,7 @@ import logging
 
 from config import LOG_LEVEL
 
+
 def configure_logging() -> None:
     """
     Configures application-wide logging.

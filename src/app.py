@@ -4,6 +4,7 @@ from exceptions import Customer360Error
 from logging_config import configure_logging
 from pipeline import ask_database
 
+
 configure_logging()
 
 logger = logging.getLogger(__name__)

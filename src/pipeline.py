@@ -1,4 +1,5 @@
 import logging
+import time
 from dataclasses import dataclass
 
 import pandas as pd
@@ -26,18 +27,48 @@ def ask_database(question: str) -> PipelineResult:
     Runs the complete natural-language analytics pipeline
     """
 
+    start_time = time.perf_counter()
+
     logger.info("Starting analytics pipeline")
 
+    sql_start = time.perf_counter()
+
     generated_sql = generate_sql(question)
+
+    logger.info(
+        "SQL generation took %.2f seconds",
+        time.perf_counter() - sql_start,
+    )
+
     safe_sql = validate_sql(generated_sql)
+
+    db_start = time.perf_counter()
+
     data = run_query(safe_sql)
+
+    logger.info(
+        "Database query took %.2f seconds",
+        time.perf_counter() - db_start,
+    )
+
+    analyzing_start = time.perf_counter()
 
     answer = analyze_results(
         question=question,
         results=data.to_string(index=False),
     )
 
-    logger.info("Analytics pipeline completed succesfully")
+    logger.info(
+        "Result analysis took %.2f seconds",
+        time.perf_counter() - analyzing_start, 
+    )
+
+    elapsed_time = time.perf_counter() - start_time
+
+    logger.info(
+        "Analytics pipeline completed successfully in %.2f seconds",
+        elapsed_time,
+    )
 
     return PipelineResult(
         question=question,

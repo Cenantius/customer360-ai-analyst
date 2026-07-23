@@ -1,11 +1,11 @@
 import logging
-
 import openai
 from openai import OpenAI
 
 from config import MODEL_NAME
 from config import OPENAI_API_KEY
 from exceptions import LLMServiceError
+
 
 logger = logging.getLogger(__name__)
 
