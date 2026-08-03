@@ -1,5 +1,6 @@
 import logging
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 
 import pandas as pd
@@ -9,7 +10,15 @@ from database import run_query
 from sql_generator import generate_sql
 from sql_validator import validate_sql
 
+
 logger = logging.getLogger(__name__)
+
+
+SqlGenerator = Callable[[str], str]
+SqlValidator = Callable[[str], str]
+QueryRunner = Callable[[str], pd.DataFrame]
+ResultAnalyzer = Callable[[str, str], str]
+
 
 @dataclass
 class PipelineResult:
@@ -22,9 +31,18 @@ class PipelineResult:
     data: pd.DataFrame
     answer: str
 
-def ask_database(question: str) -> PipelineResult:
+def ask_database(
+    question: str,
+    *,
+    sql_generator: SqlGenerator = generate_sql,
+    sql_validator: SqlValidator = validate_sql,
+    query_runner: QueryRunner = run_query,
+    result_analyzer: ResultAnalyzer = analyze_results,
+) -> PipelineResult:
     """
     Runs the complete natural-language analytics pipeline
+
+    Dependencies can be replaced for testing or alternative implementations.
     """
 
     start_time = time.perf_counter()
@@ -33,18 +51,18 @@ def ask_database(question: str) -> PipelineResult:
 
     sql_start = time.perf_counter()
 
-    generated_sql = generate_sql(question)
+    generated_sql = sql_generator(question)
 
     logger.info(
         "SQL generation took %.2f seconds",
         time.perf_counter() - sql_start,
     )
 
-    safe_sql = validate_sql(generated_sql)
+    safe_sql = sql_validator(generated_sql)
 
     db_start = time.perf_counter()
 
-    data = run_query(safe_sql)
+    data = query_runner(safe_sql)
 
     logger.info(
         "Database query took %.2f seconds",
@@ -53,7 +71,7 @@ def ask_database(question: str) -> PipelineResult:
 
     analyzing_start = time.perf_counter()
 
-    answer = analyze_results(
+    answer = result_analyzer(
         question=question,
         results=data.to_string(index=False),
     )
