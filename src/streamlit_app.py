@@ -60,6 +60,10 @@ if question:
 
             st.write(result.answer)
 
+            st.caption(
+                f"Completed in {result.execution_time:.2f} seconds"
+            )
+
             st.dataframe(
                 result.data,
                 use_container_width=True,

@@ -57,3 +57,4 @@ def test_pipeline_uses_injected_dependencies() -> None:
     assert result.sql == safe_sql
     assert result.data.equals(expected_data)
     assert result.answer == expected_answer
+    assert result.execution_time >= 0

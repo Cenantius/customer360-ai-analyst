@@ -30,6 +30,7 @@ class PipelineResult:
     sql: str
     data: pd.DataFrame
     answer: str
+    execution_time: float
 
 def ask_database(
     question: str,
@@ -93,4 +94,5 @@ def ask_database(
         sql=safe_sql,
         data=data,
         answer=answer,
+        execution_time=elapsed_time,
     )
