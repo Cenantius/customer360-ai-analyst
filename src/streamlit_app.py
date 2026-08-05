@@ -18,25 +18,48 @@ st.write(
     "Ask a natural-language question about the Customer360 database."
 )
 
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.write(message["content"])
+
+        if message.get("data") is not None:
+            st.dataframe(
+                message["data"],
+                use_container_width=True,
+            )
+
+        if message.get("sql"):
+            with st.expander("Generated SQL"):
+                st.code(message["sql"], language="sql")
+
+
 question = st.text_input(
     "Question",
     placeholder="Which customers have the highest lifetime value?"
 )
 
-ask_button = st.button("Ask database")
+if question:
+    st.session_state.messages.append(
+        {
+            "role": "user",
+            "content": question,
+        }
+    )
 
-if ask_button:
-    if not question.strip():
-        st.warning("Enter a question first.")
-    else:
+    with st.chat_message("user"):
+        st.write(question)
+
+    with st.chat_message("assistant"):
         try:
             with st.spinner("Analyzing the database..."):
                 result = ask_database(question)
 
-            st.subheader("Answer")
             st.write(result.answer)
 
-            st.subheader("Query result")
             st.dataframe(
                 result.data,
                 use_container_width=True,
@@ -45,5 +68,23 @@ if ask_button:
             with st.expander("Generated SQL"):
                 st.code(result.sql, language="sql")
 
+            st.session_state.messages.append(
+                {
+                    "role": "assistant",
+                    "content": result.answer,
+                    "data": result.data,
+                    "sql": result.sql,
+                }
+            )
+
         except Customer360Error as error:
-            st.error(str(error))
+            error_message = str(error)
+
+            st.error(error_message)
+
+            st.session_state.messages.append(
+                {
+                    "role": "assistant",
+                    "content": error_message
+                }
+            )
