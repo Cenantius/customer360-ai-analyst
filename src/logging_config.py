@@ -1,5 +1,7 @@
 import logging
 
+from rich.logging import RichHandler
+
 from config import LOG_LEVEL
 
 
@@ -10,15 +12,12 @@ def configure_logging() -> None:
 
     logging.basicConfig(
         level=LOG_LEVEL,
-        format=(
-            # time
-            "%(asctime)s | "
-            # log level
-            "%(levelname)s | "
-            # from which module did the msg come from
-            "%(name)s | "
-            # log message
-            "%(message)s | "
-        ),
-        datefmt="%Y-%m-%d %H:%M:%S"
+        format=("%(message)s"),
+        datefmt="[%X]",
+        handlers=[
+            RichHandler(
+                rich_tracebacks=True,
+                show_path=False,
+            )
+        ],
     )
