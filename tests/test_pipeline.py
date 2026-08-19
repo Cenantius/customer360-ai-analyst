@@ -23,8 +23,15 @@ def test_pipeline_uses_injected_dependencies() -> None:
         "with 1831.76 in completed revenue."
     )
 
-    def fake_generate_sql(question: str) -> str:
+    expected_context = "Previous conversation context"
+
+    def fake_generate_sql(
+            question: str,
+            conversation_context: str,
+        ) -> str:
         assert question == expected_question
+        assert conversation_context == expected_context
+
         return generated_sql
 
     def fake_validate_sql(received_sql: str) -> str:
@@ -47,6 +54,7 @@ def test_pipeline_uses_injected_dependencies() -> None:
 
     result = ask_database(
         expected_question,
+        conversation_context=expected_context,
         sql_generator=fake_generate_sql,
         sql_validator=fake_validate_sql,
         query_runner=fake_run_query,

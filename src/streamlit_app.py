@@ -1,5 +1,6 @@
 import streamlit as st
 
+from conversation import build_conversation_context
 from exceptions import Customer360Error
 from logging_config import configure_logging
 from pipeline import ask_database
@@ -25,11 +26,16 @@ if "messages" not in st.session_state:
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.write(message["content"])
+        
+        if message.get("execution_time") is not None:
+            st.caption(
+                f"Completed in {message['execution_time']:.2f} seconds"
+            )
 
         if message.get("data") is not None:
             st.dataframe(
                 message["data"],
-                use_container_width=True,
+                width=True,
             )
 
         if message.get("sql"):
@@ -37,9 +43,8 @@ for message in st.session_state.messages:
                 st.code(message["sql"], language="sql")
 
 
-question = st.text_input(
-    "Question",
-    placeholder="Which customers have the highest lifetime value?"
+question = st.chat_input(
+    "Ask a question about Customer360 data"
 )
 
 if question:
@@ -56,17 +61,32 @@ if question:
     with st.chat_message("assistant"):
         try:
             with st.spinner("Analyzing the database..."):
-                result = ask_database(question)
+
+                conversation_context = build_conversation_context(
+                    st.session_state.messages,
+                    max_turns=3,
+                )
+
+                result = ask_database(
+                    question,
+                    conversation_context=conversation_context,
+                )
 
             st.write(result.answer)
 
-            st.caption(
-                f"Completed in {result.execution_time:.2f} seconds"
+            st.session_state.messages.append(
+                {
+                    "role": "assistant",
+                    "content": result.answer,
+                    "data": result.data,
+                    "sql": result.sql,
+                    "execution_time": result.execution_time,
+                }
             )
 
             st.dataframe(
                 result.data,
-                use_container_width=True,
+                width=True,
             )
 
             with st.expander("Generated SQL"):

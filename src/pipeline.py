@@ -14,7 +14,7 @@ from sql_validator import validate_sql
 logger = logging.getLogger(__name__)
 
 
-SqlGenerator = Callable[[str], str]
+SqlGenerator = Callable[[str, str], str]
 SqlValidator = Callable[[str], str]
 QueryRunner = Callable[[str], pd.DataFrame]
 ResultAnalyzer = Callable[[str, str], str]
@@ -34,6 +34,7 @@ class PipelineResult:
 
 def ask_database(
     question: str,
+    conversation_context: str = "",
     *,
     sql_generator: SqlGenerator = generate_sql,
     sql_validator: SqlValidator = validate_sql,
@@ -52,7 +53,10 @@ def ask_database(
 
     sql_start = time.perf_counter()
 
-    generated_sql = sql_generator(question)
+    generated_sql = sql_generator(
+        question,
+        conversation_context,
+    )
 
     logger.info(
         "SQL generation took %.2f seconds",
