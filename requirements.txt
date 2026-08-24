@@ -4,3 +4,6 @@ pandas
 streamlit
 pytest
 rich
+fastapi
+uvicorn
+httpx2
