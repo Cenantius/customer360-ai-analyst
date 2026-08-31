@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 SqlGenerator = Callable[[str, str], str]
 SqlValidator = Callable[[str], str]
 QueryRunner = Callable[[str], pd.DataFrame]
-ResultAnalyzer = Callable[[str, str], str]
+ResultAnalyzer = Callable[[str, str, str], str]
 
 
 @dataclass
@@ -79,6 +79,7 @@ def ask_database(
     answer = result_analyzer(
         question=question,
         results=data.to_string(index=False),
+        sql=safe_sql,
     )
 
     logger.info(

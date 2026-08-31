@@ -45,10 +45,12 @@ def test_pipeline_uses_injected_dependencies() -> None:
     def fake_analyze_results(
         question: str,
         results: str,
+        sql: str,
     ) -> str:
         assert question == expected_question
         assert "Derek" in results
         assert "1831.76" in results
+        assert sql == safe_sql
 
         return expected_answer
 

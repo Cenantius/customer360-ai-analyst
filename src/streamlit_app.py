@@ -35,7 +35,8 @@ for message in st.session_state.messages:
         if message.get("data") is not None:
             st.dataframe(
                 message["data"],
-                width=True,
+                width="stretch",
+                hide_index=True,
             )
 
         if message.get("sql"):
@@ -74,19 +75,14 @@ if question:
 
             st.write(result.answer)
 
-            st.session_state.messages.append(
-                {
-                    "role": "assistant",
-                    "content": result.answer,
-                    "data": result.data,
-                    "sql": result.sql,
-                    "execution_time": result.execution_time,
-                }
+            st.caption(
+                f"Completed in {result.execution_time:.2f} seconds"
             )
 
             st.dataframe(
                 result.data,
-                width=True,
+                width="stretch",
+                hide_index=True,
             )
 
             with st.expander("Generated SQL"):
@@ -98,6 +94,7 @@ if question:
                     "content": result.answer,
                     "data": result.data,
                     "sql": result.sql,
+                    "execution_time": result.execution_time,
                 }
             )
 
