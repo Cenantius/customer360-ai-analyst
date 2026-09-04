@@ -1,92 +1,134 @@
 # Customer360 AI Analyst
 
-An AI-powered analytics application that allows users to query a Customer 360 database using natural language.
+[![CI](https://github.com/cenantius/customer360-ai-analyst/actions/workflows/ci.yml/badge.svg)](https://github.com/cenantius/customer360-ai-analyst/actions/workflows/ci.yml)
 
-The application converts user questions into safe SQL queries using a Large Language Model (LLM), validates and executes the queries against a read-only SQLite database, and returns both structured results and a natural-language business summary.
+A Python backend and data analytics project that allows users to query a Customer 360 database using natural language.
 
----
+The application uses an LLM to translate business questions into SQL, validates the generated query, executes it against a read-only SQLite database, and produces both structured results and a natural-language summary.
 
-## Design Goals
-
-This project was built to explore modern AI-assisted backend development while following software engineering best practices.
-
-Key design goals include:
-
-- Clear separation of responsibilities (Single Responsibility Principle)
-- Safe SQL generation and validation
-- Read-only database access
-- Modular and maintainable architecture
-- Testable components through dependency injection
-- Conversational analytics
-- Clear error handling and structured logging
-- Containerized deployment
+The project was built as a hands-on software engineering project combining Python, SQL, REST APIs, automated testing, Docker, and continuous integration. AI is used as one component of the application rather than being the sole focus of the project.
 
 ---
 
-## Features
+## Key Features
 
-Current features include:
-
-- Natural-language analytics powered by OpenAI
+- Natural-language database queries using the OpenAI API
 - Automatic SQL generation
-- SQL safety validation
-- Read-only SQLite execution
+- SQL validation before execution
+- Read-only SQLite database access
 - Dynamic database schema discovery
-- AI-generated business summaries
+- Natural-language summaries of query results
 - Conversational context for follow-up questions
-- Streamlit chat interface
 - FastAPI REST API
+- Streamlit chat interface
 - Dependency injection for testability
-- Structured logging
+- Structured logging and custom exception handling
 - Performance timing
-- Custom application exceptions
-- Unit and API tests with pytest
-- Docker support
+- Automated tests with pytest
+- Docker containerization
+- GitHub Actions continuous integration
+
+---
+
+## How It Works
+
+A user can ask a business question such as:
+
+> Which city generated the second-most revenue?
+
+The application processes the question through a multi-step pipeline:
+
+```text
+Natural-language question
+          │
+          ▼
+     SQL generation
+          │
+          ▼
+     SQL validation
+          │
+          ▼
+ Read-only database
+          │
+          ▼
+    Query results
+          │
+          ▼
+Natural-language summary
+```
+
+The generated SQL and structured query results can also be inspected by the user.
+
+Recent completed conversation turns can be included as context when generating SQL, allowing the application to understand follow-up questions that depend on the previous conversation.
 
 ---
 
 ## Architecture
 
 ```text
-                 User
-                  │
-          ┌───────┴───────┐
-          ▼               ▼
-     Streamlit UI      FastAPI API
-          │               │
-          └───────┬───────┘
-                  ▼
-             ask_database()
-                  │
-              pipeline.py
-                  │
-       ┌──────────┼──────────┐
-       ▼          ▼          ▼
- sql_generator  database  analyzer
-       │                     │
-       └──────────┬──────────┘
-                  ▼
-                llm.py
-                  │
-                  ▼
-             OpenAI API
+                  User
+                   │
+          ┌────────┴────────┐
+          ▼                 ▼
+    Streamlit UI        FastAPI API
+          │                 │
+          └────────┬────────┘
+                   ▼
+              ask_database()
+                   │
+               pipeline.py
+                   │
+       ┌───────────┼───────────┐
+       ▼           ▼           ▼
+ SQL Generator  Validator   Database
+       │                       │
+       │                       ▼
+       │                     SQLite
+       │
+       └────────────┐
+                    ▼
+                 Analyzer
+                    │
+                    ▼
+                OpenAI API
 ```
 
-The pipeline coordinates SQL generation, validation, database execution, and result analysis. Dependencies can be replaced with test implementations, allowing the pipeline and API to be tested without making real OpenAI API calls.
+The pipeline coordinates SQL generation, validation, database execution, and result analysis.
+
+Dependencies can be passed into the pipeline instead of being permanently coupled to their production implementations. This makes it possible to replace external dependencies with test implementations and test the application without making real OpenAI API calls.
+
+---
+
+## SQL Safety
+
+LLM-generated SQL is not executed without validation.
+
+The application uses multiple safeguards:
+
+- Generated SQL is validated before execution
+- Unsafe SQL operations are rejected
+- Multiple SQL statements are rejected
+- Database access is read-only
+- Application failures are handled through custom exceptions
+
+This provides separate application-level and database-level safeguards before and during query execution.
 
 ---
 
 ## Tech Stack
 
-- Python 3.12+
-- OpenAI API
+- Python 3.12
+- SQL
 - SQLite
 - Pandas
-- Streamlit
+- OpenAI API
 - FastAPI
 - Uvicorn
+- Streamlit
 - Pytest
 - Docker
+- Git & GitHub
+- GitHub Actions
 
 ---
 
@@ -95,12 +137,16 @@ The pipeline coordinates SQL generation, validation, database execution, and res
 ```text
 customer360-ai-analyst/
 │
-├── data/
+├── .github/
+│   └── workflows/
+│       └── ci.yml
 │
+├── data/
 ├── src/
 │   ├── analyzer.py
 │   ├── api.py
 │   ├── app.py
+│   ├── config.py
 │   ├── conversation.py
 │   ├── database.py
 │   ├── exceptions.py
@@ -112,7 +158,6 @@ customer360-ai-analyst/
 │   └── streamlit_app.py
 │
 ├── tests/
-│
 ├── .dockerignore
 ├── .env.example
 ├── .gitignore
@@ -129,7 +174,7 @@ customer360-ai-analyst/
 Clone the repository:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/Cenantius/customer360-ai-analyst.git
 cd customer360-ai-analyst
 ```
 
@@ -151,23 +196,17 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-Create a local `.env` file based on `.env.example` and provide your OpenAI API key:
+Create a local `.env` file based on `.env.example` and provide the required environment variables:
 
 ```text
 OPENAI_API_KEY=your_api_key_here
 ```
 
-The `.env` file should never be committed to version control.
+The `.env` file is excluded from version control.
 
 ---
 
 ## Running the Application
-
-### Terminal
-
-```bash
-python src/app.py
-```
 
 ### Streamlit
 
@@ -184,12 +223,18 @@ uvicorn api:app --app-dir src --reload
 The API is then available at:
 
 - `http://localhost:8000`
-- Interactive API documentation: `http://localhost:8000/docs`
+- API documentation: `http://localhost:8000/docs`
 - Health check: `http://localhost:8000/health`
+
+### Terminal
+
+```bash
+python src/app.py
+```
 
 ---
 
-## Running Tests
+## Testing
 
 Run the test suite with:
 
@@ -197,80 +242,76 @@ Run the test suite with:
 pytest -v
 ```
 
-The application uses dependency injection and test doubles so that core pipeline and API behavior can be tested without making real OpenAI API calls.
+The tests cover core application behavior including SQL validation, pipeline behavior, conversational context, and API endpoints.
+
+Dependency injection and test doubles allow the application to be tested without making real OpenAI API calls.
 
 ---
 
-## Running with Docker
+## Continuous Integration
 
-The FastAPI application can also be built and run inside a Docker container.
+GitHub Actions automatically runs the test suite when changes are pushed to the `main` branch.
 
-Docker Desktop is required for containerized execution.
+The CI workflow:
 
-### Build the Docker Image
+1. Creates a clean Ubuntu environment
+2. Checks out the repository
+3. Sets up Python 3.12
+4. Installs project dependencies
+5. Runs the pytest test suite
 
-Make sure Docker Desktop is running.
+This helps verify that the application works outside the local development environment and catches problems before further development.
 
-From the project root:
+---
+
+## Docker
+
+The FastAPI application can also be run inside a Docker container.
+
+Build the image:
 
 ```bash
 docker build -t customer360-ai-analyst .
 ```
 
-### Run the Docker Container
-
-Make sure your local `.env` file contains the required environment variables.
-
-Then run:
+Run the container:
 
 ```bash
 docker run --env-file .env -p 8000:8000 customer360-ai-analyst
 ```
 
-The containerized FastAPI application is then available at:
+The containerized API is then available at:
 
 - `http://localhost:8000`
-- Interactive API documentation: `http://localhost:8000/docs`
-- Health check: `http://localhost:8000/health`
-
-The `.env` file is excluded from the Docker image and should never be committed to version control.
-
-To stop a container running in the foreground, press `Ctrl+C`.
+- `http://localhost:8000/docs`
+- `http://localhost:8000/health`
 
 ---
 
-## Current Status
+## Project Status
 
-The project is under active development.
+The core application is complete and functional.
 
-Implemented engineering features include:
+The project demonstrates a complete development workflow from application design and database access to automated testing, REST API development, containerization, and continuous integration.
 
-- Dependency injection
-- Conversational context
-- FastAPI REST API
-- Docker containerization
-- Automated tests
-- Structured logging and error handling
-
-Potential next steps include:
-
-- GitHub Actions CI
-- Azure SQL integration
-- Additional API and integration tests
-- Deployment to a cloud environment
+Possible future extensions include cloud deployment, additional database backends, and further integration testing.
 
 ---
 
-## Software Engineering Principles
+## What I Learned
 
-This project is intentionally designed to practice modern backend engineering principles, including:
+This project was built to develop practical software engineering skills beyond basic application functionality.
 
-- Single Responsibility Principle (SRP)
-- Dependency injection
-- Modular architecture
-- Layered application design
-- Safe AI integration
-- Defensive programming
-- Separation of concerns
-- Automated testing
-- Readable and maintainable code
+Key areas of learning included:
+
+- Designing a modular Python application
+- Separating responsibilities between application components
+- Working with SQL and relational data from Python
+- Designing and consuming REST APIs
+- Safely integrating an LLM into an application
+- Using dependency injection to improve testability
+- Writing automated tests and test doubles
+- Debugging differences between local and CI environments
+- Containerizing a backend application with Docker
+- Automating testing with GitHub Actions
+- Using Git and GitHub throughout an iterative development workflow
